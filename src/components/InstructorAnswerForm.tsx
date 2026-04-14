@@ -9,15 +9,17 @@ import { Send } from "lucide-react";
 interface InstructorAnswerFormProps {
   questionId: number;
   instructorPassword: string;
+  initialValue?: string;
   onSuccess?: () => void;
 }
 
 export function InstructorAnswerForm({
   questionId,
   instructorPassword,
+  initialValue = "",
   onSuccess,
 }: InstructorAnswerFormProps) {
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState(initialValue);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -62,6 +62,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingAnswer, setIsEditingAnswer] = useState(false);
   const [editContent, setEditContent] = useState(question.content);
   const [editPassword, setEditPassword] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
@@ -212,6 +213,30 @@ export function QuestionCard({
               </div>
             )}
 
+            {/* Instructor Answer Form — placed ABOVE the AI answer so instructors
+                 can respond without scrolling past a long AI reply. */}
+            {isInstructorMode && !hasInstructorAnswer && (
+              <div
+                className="rounded-lg bg-emerald-50/40 border border-emerald-200 p-3"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-1.5 mb-2">
+                  <GraduationCap className="size-3.5 text-emerald-600" />
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] h-4 bg-emerald-100 text-emerald-700"
+                  >
+                    강사 답변 작성
+                  </Badge>
+                </div>
+                <InstructorAnswerForm
+                  questionId={question.id}
+                  instructorPassword={instructorPassword}
+                  onSuccess={onRefetch}
+                />
+              </div>
+            )}
+
             {/* AI Answer */}
             {hasAiAnswer && (
               <div className="rounded-lg bg-purple-50/50 border border-purple-100 p-3">
@@ -230,9 +255,12 @@ export function QuestionCard({
               </div>
             )}
 
-            {/* Instructor Answer */}
+            {/* Instructor Answer (with edit affordance in instructor mode) */}
             {hasInstructorAnswer && (
-              <div className="rounded-lg bg-emerald-50/50 border border-emerald-100 p-3">
+              <div
+                className="rounded-lg bg-emerald-50/50 border border-emerald-100 p-3"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="flex items-center gap-1.5 mb-2">
                   <GraduationCap className="size-3.5 text-emerald-600" />
                   <Badge
@@ -241,20 +269,34 @@ export function QuestionCard({
                   >
                     강사 답변
                   </Badge>
+                  {isInstructorMode && (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="ml-auto h-5 px-1.5 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-100"
+                      onClick={() => setIsEditingAnswer((v) => !v)}
+                    >
+                      <Pencil className="size-3" />
+                      {isEditingAnswer ? "취소" : "수정"}
+                    </Button>
+                  )}
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap text-emerald-900/80">
-                  {question.instructorAnswer}
-                </p>
+                {isEditingAnswer ? (
+                  <InstructorAnswerForm
+                    questionId={question.id}
+                    instructorPassword={instructorPassword}
+                    initialValue={question.instructorAnswer ?? ""}
+                    onSuccess={() => {
+                      setIsEditingAnswer(false);
+                      onRefetch?.();
+                    }}
+                  />
+                ) : (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-emerald-900/80">
+                    {question.instructorAnswer}
+                  </p>
+                )}
               </div>
-            )}
-
-            {/* Instructor Answer Form (only in instructor mode, when no instructor answer yet) */}
-            {isInstructorMode && !hasInstructorAnswer && (
-              <InstructorAnswerForm
-                questionId={question.id}
-                instructorPassword={instructorPassword}
-                onSuccess={onRefetch}
-              />
             )}
 
             {/* Action buttons */}
