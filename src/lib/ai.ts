@@ -43,6 +43,33 @@ export async function generateAutoAnswer(
   return textBlock ? textBlock.text : "";
 }
 
+export async function generateQuestionInsight(
+  question: string,
+  aiAnswer: string,
+  instructorAnswer: string
+): Promise<string> {
+  const anthropic = getClient();
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 400,
+    system:
+      "당신은 홍익대학교 Claude AI 강좌의 교육 분석 전문가입니다. " +
+      "학생 질문과 그에 대한 AI 답변, 강사 답변을 종합하여 이 질문의 핵심 인사이트를 " +
+      "3~5줄 이내로 간결하게 한국어로 정리하세요. " +
+      "불필요한 수사 없이 학습 포인트·오해 지점·실무 팁을 bullet point로 제시하세요.",
+    messages: [
+      {
+        role: "user",
+        content: `질문: ${question}\n\nAI 답변: ${aiAnswer}\n\n강사 답변: ${instructorAnswer}\n\n이 질문의 핵심 인사이트를 간결히 정리해 주세요.`,
+      },
+    ],
+  });
+
+  const textBlock = response.content.find((block) => block.type === "text");
+  return textBlock ? textBlock.text : "";
+}
+
 export async function generateInsights(
   questions: {
     content: string;

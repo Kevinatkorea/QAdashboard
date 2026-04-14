@@ -6,11 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TranscriptUpload } from "@/components/TranscriptUpload";
-import { generateLectureInsights } from "@/app/actions/insights";
 import {
   Lock,
   Unlock,
-  Sparkles,
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
@@ -23,7 +21,6 @@ interface InstructorToolbarProps {
   onAuthenticate: () => void;
   onLogout: () => void;
   onRefetch: () => void;
-  onInsightsGenerated?: () => void;
 }
 
 export function InstructorToolbar({
@@ -34,35 +31,8 @@ export function InstructorToolbar({
   onAuthenticate,
   onLogout,
   onRefetch,
-  onInsightsGenerated,
 }: InstructorToolbarProps) {
   const [passwordInput, setPasswordInput] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [genMessage, setGenMessage] = useState<string | null>(null);
-
-  async function handleGenerateInsights() {
-    setIsGenerating(true);
-    setGenMessage(null);
-    try {
-      const result = await generateLectureInsights(
-        lectureId,
-        instructorPassword
-      );
-      if (result.success) {
-        setGenMessage("인사이트가 생성되었습니다!");
-        onInsightsGenerated?.();
-        setTimeout(() => setGenMessage(null), 3000);
-      } else {
-        setGenMessage(result.error || "인사이트 생성에 실패했습니다.");
-        setTimeout(() => setGenMessage(null), 3000);
-      }
-    } catch {
-      setGenMessage("인사이트 생성 중 오류가 발생했습니다.");
-      setTimeout(() => setGenMessage(null), 3000);
-    } finally {
-      setIsGenerating(false);
-    }
-  }
 
   if (!isAuthenticated) {
     return (
@@ -118,16 +88,6 @@ export function InstructorToolbar({
             instructorPassword={instructorPassword}
           />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleGenerateInsights}
-            disabled={isGenerating}
-          >
-            <Sparkles className="size-3.5" />
-            {isGenerating ? "생성 중..." : "인사이트 추출"}
-          </Button>
-
           <Button variant="outline" size="sm" onClick={onRefetch}>
             <RefreshCw className="size-3.5" />
             새로고침
@@ -140,18 +100,6 @@ export function InstructorToolbar({
           </Button>
         </div>
       </div>
-
-      {genMessage && (
-        <p
-          className={`text-xs ${
-            genMessage.includes("실패") || genMessage.includes("오류")
-              ? "text-destructive"
-              : "text-emerald-600"
-          }`}
-        >
-          {genMessage}
-        </p>
-      )}
     </div>
   );
 }

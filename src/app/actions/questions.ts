@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { questions, lectures } from "@/db/schema";
-import { generateAutoAnswer } from "@/lib/ai";
+import { questions, lectures, insights } from "@/db/schema";
+import { generateAutoAnswer, generateQuestionInsight } from "@/lib/ai";
 import {
   hashPassword,
   verifyPassword,
@@ -196,6 +196,29 @@ export async function addInstructorAnswer(
       })
       .where(eq(questions.id, id))
       .returning();
+
+    // Auto-generate a per-question insight in the background when both AI and
+    // instructor answers exist. Returns immediately so the instructor UI feels
+    // snappy; the insight lands in the "핵심 인사이트" column once ready.
+    if (updated.aiAnswer && updated.instructorAnswer) {
+      after(async () => {
+        try {
+          const insightContent = await generateQuestionInsight(
+            updated.content,
+            updated.aiAnswer!,
+            updated.instructorAnswer!
+          );
+
+          await db.insert(insights).values({
+            lectureId: updated.lectureId,
+            content: insightContent,
+            sourceQuestionIds: String(updated.id),
+          });
+        } catch (err) {
+          console.error("Failed to auto-generate question insight:", err);
+        }
+      });
+    }
 
     return { success: true, data: updated };
   } catch (err) {

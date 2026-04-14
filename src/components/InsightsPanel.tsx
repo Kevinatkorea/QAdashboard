@@ -27,7 +27,7 @@ export function InsightsPanel({ insights }: InsightsPanelProps) {
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <Sparkles className="mb-3 size-8 opacity-40" />
         <p className="text-sm">아직 생성된 인사이트가 없습니다.</p>
-        <p className="text-xs mt-1">강사 도구에서 인사이트를 추출해 주세요.</p>
+        <p className="text-xs mt-1">강사 답변이 등록되면 자동 생성됩니다.</p>
       </div>
     );
   }
