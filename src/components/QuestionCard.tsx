@@ -125,9 +125,14 @@ export function QuestionCard({
     }
   }
 
+  const needsInstructorAnswer =
+    isInstructorMode && hasAiAnswer && !hasInstructorAnswer;
+
   return (
     <Card
-      className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 cursor-pointer transition-shadow hover:shadow-md"
+      className={`animate-in fade-in-0 slide-in-from-bottom-2 duration-300 cursor-pointer transition-shadow hover:shadow-md ${
+        needsInstructorAnswer ? "ring-2 ring-amber-300/60 shadow-sm" : ""
+      }`}
       size="sm"
     >
       <CardContent className="p-0 px-3">
@@ -197,6 +202,14 @@ export function QuestionCard({
             >
               <GraduationCap className="size-2.5" />
               강사
+            </Badge>
+          )}
+          {isInstructorMode && hasAiAnswer && !hasInstructorAnswer && (
+            <Badge
+              variant="secondary"
+              className="text-[10px] h-4 bg-amber-50 text-amber-700 border-amber-200 animate-pulse"
+            >
+              강사 답변 필요
             </Badge>
           )}
         </div>
