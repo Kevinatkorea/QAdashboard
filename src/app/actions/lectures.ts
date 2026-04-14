@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { lectures } from "@/db/schema";
 import { verifyInstructorPassword } from "@/lib/auth";
 import { eq, desc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 type ActionResult = {
   success: boolean;
@@ -32,6 +33,7 @@ export async function createLecture(
       .values({ title: title.trim() })
       .returning();
 
+    revalidatePath("/");
     return { success: true, data: created };
   } catch (err) {
     console.error("createLecture error:", err);

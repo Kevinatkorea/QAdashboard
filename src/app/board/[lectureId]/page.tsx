@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ lectureId: string }>;
 };

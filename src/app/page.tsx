@@ -2,6 +2,8 @@ import { getLectures } from "@/app/actions/lectures";
 import { LectureList } from "@/components/LectureList";
 import type { Lecture } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const result = await getLectures();
   const lectures = (result.success ? (result.data as Lecture[]) : []) ?? [];
