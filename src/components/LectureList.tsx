@@ -155,30 +155,32 @@ export function LectureList({ initialLectures }: LectureListProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-3">
+        <ul className="grid gap-3 sm:grid-cols-2 list-none p-0">
           {lectures.map((lecture) => (
-            <Link key={lecture.id} href={`/board/${lecture.id}`}>
-              <Card className="transition-all hover:shadow-md hover:ring-2 hover:ring-primary/10 cursor-pointer group">
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
-                        {lecture.title}
-                      </h3>
-                      <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
-                        <Calendar className="size-3" />
-                        <span className="text-xs">
-                          {formatDate(lecture.createdAt)}
-                        </span>
+            <li key={lecture.id}>
+              <Link href={`/board/${lecture.id}`} className="block">
+                <Card className="transition-all hover:shadow-md hover:ring-2 hover:ring-primary/10 cursor-pointer group h-full">
+                  <CardContent>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm sm:text-base truncate group-hover:text-primary transition-colors">
+                          {lecture.title}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
+                          <Calendar className="size-3" />
+                          <time className="text-xs" dateTime={lecture.createdAt ? new Date(lecture.createdAt).toISOString() : undefined}>
+                            {formatDate(lecture.createdAt)}
+                          </time>
+                        </div>
                       </div>
+                      <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
                     </div>
-                    <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  </CardContent>
+                </Card>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

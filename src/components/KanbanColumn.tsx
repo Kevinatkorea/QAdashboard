@@ -42,24 +42,24 @@ export function KanbanColumn({
   const theme = themeStyles[colorTheme];
 
   return (
-    <div className="flex flex-col h-full min-w-0">
+    <section className="flex flex-col h-full min-w-0" aria-label={title}>
       {/* Column header */}
-      <div
+      <header
         className={`flex items-center gap-2 px-3 py-2.5 rounded-t-lg border ${theme.header}`}
       >
-        <div className={`h-2 w-2 rounded-full ${theme.bar}`} />
-        <h3 className="text-sm font-semibold">{title}</h3>
+        <span className={`h-2 w-2 rounded-full ${theme.bar}`} aria-hidden="true" />
+        <h2 className="text-sm font-semibold">{title}</h2>
         <Badge
           variant="secondary"
           className={`ml-auto text-[10px] h-4 px-1.5 ${theme.badge}`}
         >
           {count}
         </Badge>
-      </div>
+      </header>
 
       {/* Column body */}
       <div className="flex-1 min-h-0 border border-t-0 rounded-b-lg bg-muted/20">
-        <ScrollArea className="h-full max-h-[calc(100vh-220px)]">
+        <ScrollArea className="h-full max-h-[60vh] md:max-h-[calc(100vh-240px)]">
           <div className="p-2 space-y-2">
             {count === 0 ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -71,6 +71,6 @@ export function KanbanColumn({
           </div>
         </ScrollArea>
       </div>
-    </div>
+    </section>
   );
 }

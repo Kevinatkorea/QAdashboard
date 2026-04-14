@@ -67,18 +67,16 @@ export function KanbanBoard({
     <div className="flex flex-col h-full min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
-        <div className="max-w-screen-2xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <a
-                href="/"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ← 강의 목록
-              </a>
-              <h1 className="text-lg font-semibold">{lectureTitle}</h1>
-            </div>
-          </div>
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 py-3">
+          <nav aria-label="상단 내비게이션" className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-2 gap-1">
+            <a
+              href="/"
+              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              ← 강의 목록
+            </a>
+            <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">{lectureTitle}</h1>
+          </nav>
 
           {/* Instructor Toolbar */}
           <InstructorToolbar
@@ -95,8 +93,8 @@ export function KanbanBoard({
       </header>
 
       {/* Board */}
-      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 h-full">
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+        <section aria-label="질문 칸반보드" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 h-full">
           {/* Column 1: New Questions */}
           <KanbanColumn
             title="새 질문"
@@ -175,17 +173,18 @@ export function KanbanBoard({
             )}
             <InsightsPanel insights={insights} />
           </KanbanColumn>
-        </div>
+        </section>
       </main>
 
       {/* Floating question button */}
       <Button
-        className="fixed bottom-6 right-6 z-40 h-12 rounded-full px-5 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 h-12 sm:h-14 rounded-full px-4 sm:px-5 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
         size="lg"
         onClick={() => setQuestionFormOpen(true)}
+        aria-label="질문하기"
       >
         <MessageCirclePlus className="size-5" />
-        질문하기
+        <span className="hidden xs:inline sm:inline">질문하기</span>
       </Button>
 
       {/* Question form modal */}
