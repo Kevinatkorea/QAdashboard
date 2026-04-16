@@ -83,7 +83,7 @@ export function SeatingChart({
     <div className="flex flex-col items-center gap-2">
       {/* Front label */}
       <div className="w-full max-w-lg mx-auto">
-        <div className="text-center text-xs text-muted-foreground mb-1 py-1 px-4 bg-muted/50 rounded">
+        <div className="text-center text-sm text-muted-foreground mb-1 py-1.5 px-4 bg-muted/50 rounded font-medium">
           칠판 (앞)
         </div>
       </div>
@@ -120,41 +120,41 @@ export function SeatingChart({
       </div>
 
       {/* Back label */}
-      <div className="text-center text-xs text-muted-foreground mt-1">뒤</div>
+      <div className="text-center text-sm text-muted-foreground mt-1">뒤</div>
 
       {/* Legend */}
       {occupiedSeats.length > 0 && (
-        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground flex-wrap justify-center">
+        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap justify-center">
           {activeTaskId !== null ? (
             <>
               <div className="flex items-center gap-1">
-                <span className="inline-block size-2.5 rounded-sm bg-emerald-300 border border-emerald-400" />
+                <span className="inline-block size-3 rounded-sm bg-emerald-300 border border-emerald-400" />
                 완료 ({doneCount})
               </div>
               <div className="flex items-center gap-1">
-                <span className="inline-block size-2.5 rounded-sm bg-slate-200 border border-slate-300" />
+                <span className="inline-block size-3 rounded-sm bg-slate-200 border border-slate-300" />
                 미완료 ({notDoneCount})
               </div>
             </>
           ) : (
             <>
               <div className="flex items-center gap-1">
-                <span className="inline-block size-2.5 rounded-sm bg-emerald-200 border border-emerald-300" />
+                <span className="inline-block size-3 rounded-sm bg-emerald-200 border border-emerald-300" />
                 전체 완료
               </div>
               <div className="flex items-center gap-1">
-                <span className="inline-block size-2.5 rounded-sm bg-amber-200 border border-amber-300" />
+                <span className="inline-block size-3 rounded-sm bg-amber-200 border border-amber-300" />
                 진행 중
               </div>
               <div className="flex items-center gap-1">
-                <span className="inline-block size-2.5 rounded-sm bg-blue-200 border border-blue-300" />
+                <span className="inline-block size-3 rounded-sm bg-blue-200 border border-blue-300" />
                 미시작
               </div>
             </>
           )}
           {handRaisedCount > 0 && (
             <div className="flex items-center gap-1">
-              <span className="inline-block size-2.5 rounded-sm bg-red-300 border border-red-400" />
+              <span className="inline-block size-3 rounded-sm bg-red-300 border border-red-400" />
               도움 요청 ({handRaisedCount})
             </div>
           )}

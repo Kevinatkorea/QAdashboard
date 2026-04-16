@@ -100,7 +100,7 @@ export function SeatCard({
   return (
     <>
       <button
-        className={`relative flex flex-col items-center justify-center rounded-lg border p-1.5 transition-all min-w-[64px] w-[64px] h-[64px] sm:min-w-[76px] sm:w-[76px] sm:h-[76px] text-center hover:shadow-md ${bgClass}`}
+        className={`relative flex flex-col items-center justify-center rounded-lg border p-1.5 transition-all min-w-[72px] w-[72px] h-[72px] sm:min-w-[84px] sm:w-[84px] sm:h-[84px] text-center hover:shadow-md ${bgClass}`}
         onClick={() => {
           if (isEmpty && !hasClaimedSeat && !isInstructorMode) {
             setClaimOpen(true);
@@ -118,11 +118,11 @@ export function SeatCard({
       >
         {/* Hand raised indicator */}
         {handRaised && (
-          <span className="absolute -top-1.5 -right-1.5 z-10">
-            <span className="relative flex size-5">
+          <span className="absolute -top-2 -right-2 z-10">
+            <span className="relative flex size-6">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-60" />
-              <span className="relative inline-flex items-center justify-center size-5 rounded-full bg-red-500 text-white">
-                <Hand className="size-3" />
+              <span className="relative inline-flex items-center justify-center size-6 rounded-full bg-red-500 text-white">
+                <Hand className="size-3.5" />
               </span>
             </span>
           </span>
@@ -130,14 +130,14 @@ export function SeatCard({
 
         {isEmpty ? (
           <>
-            <UserPlus className="size-4 text-muted-foreground/50" />
-            <span className="text-[8px] text-muted-foreground/60 mt-0.5">
+            <UserPlus className="size-5 text-muted-foreground/50" />
+            <span className="text-[10px] text-muted-foreground/60 mt-0.5">
               빈 자리
             </span>
           </>
         ) : (
           <>
-            <span className="text-[10px] sm:text-xs font-medium truncate w-full leading-tight">
+            <span className="text-xs sm:text-sm font-medium truncate w-full leading-tight">
               {seat.studentName}
             </span>
 
@@ -159,14 +159,14 @@ export function SeatCard({
                     style={{ width: `${totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-[8px] text-muted-foreground mt-0.5 block">
+                <span className="text-[10px] text-muted-foreground mt-0.5 block">
                   {completedCount}/{totalTasks}
                 </span>
               </div>
             ) : null}
 
             {isMyself && (
-              <span className="text-[7px] text-primary/70">(나)</span>
+              <span className="text-[9px] text-primary/70">(나)</span>
             )}
           </>
         )}

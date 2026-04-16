@@ -63,13 +63,13 @@ export function TaskPanel({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <ClipboardList className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">수행 목록</span>
+          <ClipboardList className="size-5 text-muted-foreground" />
+          <span className="text-base font-medium">수행 목록</span>
           {activeTaskId !== null && (
             <Button
               variant="ghost"
               size="xs"
-              className="text-[10px] h-5 text-muted-foreground"
+              className="text-xs h-5 text-muted-foreground"
               onClick={() => onSelectTask(null)}
             >
               전체 보기
@@ -107,9 +107,9 @@ export function TaskPanel({
       {/* Task cards as selectable pills */}
       {tasks.length === 0 ? (
         <div className="text-center py-4 text-muted-foreground">
-          <p className="text-xs">수행 목록이 없습니다.</p>
+          <p className="text-sm">수행 목록이 없습니다.</p>
           {isInstructorMode && (
-            <p className="text-[10px] mt-1">과제를 추가해 주세요.</p>
+            <p className="text-xs mt-1">과제를 추가해 주세요.</p>
           )}
         </div>
       ) : (
@@ -150,7 +150,7 @@ export function TaskPanel({
             return (
               <div key={task.id} className="flex items-center gap-0.5 group">
                 <button
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all border ${
                     isActive
                       ? "bg-primary text-primary-foreground border-primary shadow-sm"
                       : "bg-muted/50 text-foreground border-muted-foreground/20 hover:bg-muted hover:border-muted-foreground/40"
@@ -164,7 +164,7 @@ export function TaskPanel({
                   {total > 0 && (
                     <Badge
                       variant="secondary"
-                      className={`text-[9px] h-4 ml-0.5 ${
+                      className={`text-[10px] h-4 ml-0.5 ${
                         isActive
                           ? "bg-primary-foreground/20 text-primary-foreground"
                           : doneCount === total

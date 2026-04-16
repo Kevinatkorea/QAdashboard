@@ -238,7 +238,7 @@ export function SeatingManager({
         )}
         {!isInstructorMode && mySeatId === null && seats.length > 0 && (
           <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
-            <p className="text-xs text-blue-700">
+            <p className="text-sm text-blue-700">
               빈 자리를 클릭하여 이름을 입력하세요. 착석 후 자기 자리를 클릭하면 수행 체크 및 손흔들기를 할 수 있습니다.
             </p>
           </div>
