@@ -13,6 +13,7 @@ import {
   updateQuestion,
   deleteQuestion,
   toggleImportant,
+  requestAiAnswer,
 } from "@/app/actions/questions";
 import {
   ChevronDown,
@@ -73,6 +74,7 @@ export function QuestionCard({
   const hasAiAnswer = !!question.aiAnswer;
   const hasInstructorAnswer = !!question.instructorAnswer;
   const isNew = question.status === "new";
+  const isPreLecture = question.status === "pre_lecture";
 
   async function handleUpdate() {
     if (!editContent.trim() || !editPassword.trim()) return;
@@ -115,6 +117,23 @@ export function QuestionCard({
     }
   }
 
+  async function handleRequestAiAnswer() {
+    setIsProcessing(true);
+    setActionError(null);
+    try {
+      const result = await requestAiAnswer(question.id, instructorPassword);
+      if (result.success) {
+        onRefetch?.();
+      } else {
+        setActionError(result.error || "AI 답변 요청에 실패했습니다.");
+      }
+    } catch {
+      setActionError("AI 답변 요청 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   async function handleToggleImportant() {
     if (!instructorPassword) return;
     try {
@@ -126,7 +145,7 @@ export function QuestionCard({
   }
 
   const needsInstructorAnswer =
-    isInstructorMode && hasAiAnswer && !hasInstructorAnswer;
+    isInstructorMode && ((hasAiAnswer && !hasInstructorAnswer) || isPreLecture);
 
   return (
     <Card
@@ -178,6 +197,14 @@ export function QuestionCard({
 
         {/* Status badges */}
         <div className="flex items-center gap-1.5 mt-2">
+          {isPreLecture && (
+            <Badge
+              variant="secondary"
+              className="text-[10px] h-4 bg-emerald-50 text-emerald-700 border-emerald-200"
+            >
+              사전질문
+            </Badge>
+          )}
           {isNew && (
             <Badge
               variant="secondary"
@@ -241,6 +268,18 @@ export function QuestionCard({
                   >
                     강사 답변 작성
                   </Badge>
+                  {isPreLecture && (
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={handleRequestAiAnswer}
+                      disabled={isProcessing}
+                      className="ml-auto text-purple-700 border-purple-200 hover:bg-purple-50"
+                    >
+                      <Bot className="size-3" />
+                      {isProcessing ? "요청 중..." : "AI 답변 요청"}
+                    </Button>
+                  )}
                 </div>
                 <InstructorAnswerForm
                   questionId={question.id}

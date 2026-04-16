@@ -40,6 +40,8 @@ export async function submitQuestion(formData: FormData): Promise<ActionResult> 
 
     const passwordHash = await hashPassword(password);
 
+    const isPreLecture = formData.get("is_pre_lecture") === "true";
+
     const [created] = await db
       .insert(questions)
       .values({
@@ -47,37 +49,40 @@ export async function submitQuestion(formData: FormData): Promise<ActionResult> 
         authorName,
         content,
         passwordHash,
-        status: "new",
+        status: isPreLecture ? "pre_lecture" : "new",
       })
       .returning();
 
-    // Trigger AI answer generation after the response is sent
-    after(async () => {
-      try {
-        let transcript: string | null = null;
-        if (lectureId) {
-          const [lecture] = await db
-            .select({ transcript: lectures.transcript })
-            .from(lectures)
-            .where(eq(lectures.id, lectureId))
-            .limit(1);
-          transcript = lecture?.transcript ?? null;
+    // Only trigger AI answer generation for regular questions.
+    // Pre-lecture questions wait for the instructor to answer (or request AI).
+    if (!isPreLecture) {
+      after(async () => {
+        try {
+          let transcript: string | null = null;
+          if (lectureId) {
+            const [lecture] = await db
+              .select({ transcript: lectures.transcript })
+              .from(lectures)
+              .where(eq(lectures.id, lectureId))
+              .limit(1);
+            transcript = lecture?.transcript ?? null;
+          }
+
+          const aiAnswer = await generateAutoAnswer(content, transcript);
+
+          await db
+            .update(questions)
+            .set({
+              aiAnswer,
+              status: "ai_answered",
+              updatedAt: new Date(),
+            })
+            .where(eq(questions.id, created.id));
+        } catch (err) {
+          console.error("Failed to generate AI answer:", err);
         }
-
-        const aiAnswer = await generateAutoAnswer(content, transcript);
-
-        await db
-          .update(questions)
-          .set({
-            aiAnswer,
-            status: "ai_answered",
-            updatedAt: new Date(),
-          })
-          .where(eq(questions.id, created.id));
-      } catch (err) {
-        console.error("Failed to generate AI answer:", err);
-      }
-    });
+      });
+    }
 
     return { success: true, data: created };
   } catch (err) {
@@ -224,6 +229,68 @@ export async function addInstructorAnswer(
   } catch (err) {
     console.error("addInstructorAnswer error:", err);
     return { success: false, error: "Failed to add instructor answer" };
+  }
+}
+
+/**
+ * Request AI to answer a pre-lecture question. Instructor-only action.
+ * Generates the AI answer in the background via `after()` and moves the
+ * question status to "ai_answered".
+ */
+export async function requestAiAnswer(
+  id: number,
+  instructorPassword: string
+): Promise<ActionResult> {
+  try {
+    if (!verifyInstructorPassword(instructorPassword)) {
+      return { success: false, error: "Invalid instructor password" };
+    }
+
+    const [question] = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.id, id))
+      .limit(1);
+
+    if (!question) {
+      return { success: false, error: "Question not found" };
+    }
+
+    // Mark as "new" so the UI shows "AI 처리 중..." badge immediately
+    await db
+      .update(questions)
+      .set({ status: "new", updatedAt: new Date() })
+      .where(eq(questions.id, id));
+
+    after(async () => {
+      try {
+        let transcript: string | null = null;
+        const [lecture] = await db
+          .select({ transcript: lectures.transcript })
+          .from(lectures)
+          .where(eq(lectures.id, question.lectureId))
+          .limit(1);
+        transcript = lecture?.transcript ?? null;
+
+        const aiAnswer = await generateAutoAnswer(question.content, transcript);
+
+        await db
+          .update(questions)
+          .set({
+            aiAnswer,
+            status: "ai_answered",
+            updatedAt: new Date(),
+          })
+          .where(eq(questions.id, id));
+      } catch (err) {
+        console.error("Failed to generate AI answer for pre-lecture question:", err);
+      }
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("requestAiAnswer error:", err);
+    return { success: false, error: "Failed to request AI answer" };
   }
 }
 

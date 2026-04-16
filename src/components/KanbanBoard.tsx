@@ -6,17 +6,18 @@ import { usePolling } from "@/hooks/usePolling";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { QuestionCard } from "@/components/QuestionCard";
 import { QuestionForm } from "@/components/QuestionForm";
-import { InstructorToolbar } from "@/components/InstructorToolbar";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { Button } from "@/components/ui/button";
 import { getInsights } from "@/app/actions/insights";
-import { MessageCirclePlus } from "lucide-react";
+import { MessageCirclePlus, BookOpen } from "lucide-react";
 
 interface KanbanBoardProps {
   lectureId: number;
   lectureTitle: string;
   initialQuestions: Question[];
   initialInsights: Insight[];
+  isInstructorMode: boolean;
+  instructorPassword: string;
 }
 
 export function KanbanBoard({
@@ -24,33 +25,27 @@ export function KanbanBoard({
   lectureTitle,
   initialQuestions,
   initialInsights,
+  isInstructorMode,
+  instructorPassword,
 }: KanbanBoardProps) {
   const { questions, refetch, removeQuestion } = usePolling(
     lectureId,
     initialQuestions
   );
   const [questionFormOpen, setQuestionFormOpen] = useState(false);
-  const [isInstructorMode, setIsInstructorMode] = useState(false);
-  const [instructorPassword, setInstructorPassword] = useState("");
+  const [preQuestionFormOpen, setPreQuestionFormOpen] = useState(false);
   const [insights, setInsights] = useState<Insight[]>(initialInsights);
 
-  // Categorize questions: 3-column flow — 새 질문 → 답변(AI/강사) → 핵심 인사이트
-  // The "답변" column shows anything with an AI answer; the instructor answer
-  // renders as a supplementary section on the same card when present.
+  // Categorize questions: 4-column flow — 사전질문 → 새 질문 → 답변(AI/강사) → 핵심 인사이트
+  const preLectureQuestions = questions.filter((q) => q.status === "pre_lecture");
   const newQuestions = questions.filter((q) => q.status === "new");
-  const answered = questions.filter(
-    (q) => q.status === "ai_answered" || q.status === "instructor_answered"
-  );
-
-  const handleAuthenticate = useCallback(() => {
-    // We just store the password — actual verification happens on server action calls
-    setIsInstructorMode(true);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    setIsInstructorMode(false);
-    setInstructorPassword("");
-  }, []);
+  const answered = questions
+    .filter((q) => q.status === "ai_answered" || q.status === "instructor_answered")
+    .sort((a, b) => {
+      const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return bTime - aTime;
+    });
 
   const handleRefreshInsights = useCallback(async () => {
     try {
@@ -63,44 +58,35 @@ export function KanbanBoard({
     }
   }, [lectureId]);
 
-  // Poll insights every 10s so auto-generated insights (from instructor
-  // answers) appear without a manual refresh.
+  // Poll insights every 10s
   useEffect(() => {
     const interval = setInterval(handleRefreshInsights, 10000);
     return () => clearInterval(interval);
   }, [handleRefreshInsights]);
 
   return (
-    <div className="flex flex-col h-full min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
-        <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 py-3">
-          <nav aria-label="상단 내비게이션" className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-2 gap-1">
-            <a
-              href="/"
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            >
-              ← 강의 목록
-            </a>
-            <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate">{lectureTitle}</h1>
-          </nav>
-
-          {/* Instructor Toolbar */}
-          <InstructorToolbar
-            lectureId={lectureId}
-            instructorPassword={instructorPassword}
-            isAuthenticated={isInstructorMode}
-            onPasswordChange={setInstructorPassword}
-            onAuthenticate={handleAuthenticate}
-            onLogout={handleLogout}
-            onRefetch={refetch}
-          />
-        </div>
-      </header>
-
+    <>
       {/* Board */}
-      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-        <section aria-label="질문 칸반보드" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 h-full">
+      <main className="py-3 sm:py-4">
+        <section aria-label="질문 칸반보드" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 h-full">
+          {/* Column 0: 사전질문 */}
+          <KanbanColumn
+            title="사전질문"
+            count={preLectureQuestions.length}
+            colorTheme="green"
+          >
+            {preLectureQuestions.map((q) => (
+              <QuestionCard
+                key={q.id}
+                question={q}
+                isInstructorMode={isInstructorMode}
+                instructorPassword={instructorPassword}
+                onRefetch={refetch}
+                onDelete={removeQuestion}
+              />
+            ))}
+          </KanbanColumn>
+
           {/* Column 1: 새 질문 */}
           <KanbanColumn
             title="새 질문"
@@ -119,7 +105,7 @@ export function KanbanBoard({
             ))}
           </KanbanColumn>
 
-          {/* Column 2: 답변 (AI + 강사 답변이 같은 카드에 누적) */}
+          {/* Column 2: 답변 */}
           <KanbanColumn
             title="답변"
             count={answered.length}
@@ -137,7 +123,7 @@ export function KanbanBoard({
             ))}
           </KanbanColumn>
 
-          {/* Column 3: 핵심 인사이트 (강사 답변 완료 시 자동 생성) */}
+          {/* Column 3: 핵심 인사이트 */}
           <KanbanColumn
             title="핵심 인사이트"
             count={insights.length}
@@ -148,24 +134,42 @@ export function KanbanBoard({
         </section>
       </main>
 
-      {/* Floating question button */}
-      <Button
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 h-12 sm:h-14 rounded-full px-4 sm:px-5 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-        size="lg"
-        onClick={() => setQuestionFormOpen(true)}
-        aria-label="질문하기"
-      >
-        <MessageCirclePlus className="size-5" />
-        <span className="hidden xs:inline sm:inline">질문하기</span>
-      </Button>
+      {/* Floating question buttons */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col gap-2">
+        <Button
+          className="h-10 sm:h-12 rounded-full px-3 sm:px-4 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/25 transition-all bg-emerald-600 hover:bg-emerald-700"
+          size="lg"
+          onClick={() => setPreQuestionFormOpen(true)}
+          aria-label="사전질문"
+        >
+          <BookOpen className="size-4" />
+          <span className="hidden xs:inline sm:inline">사전질문</span>
+        </Button>
+        <Button
+          className="h-10 sm:h-12 rounded-full px-3 sm:px-4 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+          size="lg"
+          onClick={() => setQuestionFormOpen(true)}
+          aria-label="질문하기"
+        >
+          <MessageCirclePlus className="size-4" />
+          <span className="hidden xs:inline sm:inline">질문하기</span>
+        </Button>
+      </div>
 
-      {/* Question form modal */}
+      {/* Question form modals */}
+      <QuestionForm
+        lectureId={lectureId}
+        open={preQuestionFormOpen}
+        onOpenChange={setPreQuestionFormOpen}
+        onSuccess={refetch}
+        isPreLecture
+      />
       <QuestionForm
         lectureId={lectureId}
         open={questionFormOpen}
         onOpenChange={setQuestionFormOpen}
         onSuccess={refetch}
       />
-    </div>
+    </>
   );
 }

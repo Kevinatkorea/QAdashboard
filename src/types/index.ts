@@ -4,7 +4,7 @@ export interface Question {
   authorName: string;
   content: string;
   passwordHash: string;
-  status: "new" | "ai_answered" | "instructor_answered" | null;
+  status: "pre_lecture" | "new" | "ai_answered" | "instructor_answered" | null;
   isImportant: boolean | null;
   aiAnswer: string | null;
   instructorAnswer: string | null;
@@ -25,4 +25,34 @@ export interface Insight {
   content: string;
   sourceQuestionIds: string;
   createdAt: Date | string | null;
+}
+
+export interface Seat {
+  id: number;
+  lectureId: number;
+  row: number;
+  col: number;
+  studentName: string | null;
+  handRaised: boolean | null;
+  updatedAt: Date | string | null;
+}
+
+export interface Task {
+  id: number;
+  lectureId: number;
+  title: string;
+  description: string | null;
+  sortOrder: number | null;
+  createdAt: Date | string | null;
+}
+
+export interface TaskCompletion {
+  id: number;
+  taskId: number;
+  seatId: number;
+  completedAt: Date | string | null;
+}
+
+export interface SeatWithProgress extends Seat {
+  completedTaskIds: number[];
 }

@@ -48,6 +48,9 @@
 ## 검증
 - [x] TypeScript 컴파일 (에러 없음)
 - [x] 프로덕션 URL 200 응답 확인
+- [x] 강의 생성 (강사 비밀번호 인증)
+- [x] 질문 등록 → AI 자동답변 (새 질문 → AI 답변 컬럼 자동 이동)
+- [x] 강사 로그인 + 툴바 표시 (녹취록/인사이트/새로고침)
 - [ ] 질문 등록 → AI 자동답변 테스트
 - [ ] 칸반 컬럼 이동 테스트
 - [ ] 강사 답변 + 비밀번호 인증 테스트
@@ -55,6 +58,29 @@
 - [ ] 녹취록 컨텍스트 반영 테스트
 - [ ] 인사이트 추출 테스트
 - [ ] 모바일 반응형 테스트
+
+## Step 9: 사전질문 시스템
+- [x] questions 테이블 status에 "pre_lecture" 추가
+- [x] Question 타입 업데이트
+- [x] submitQuestion에 is_pre_lecture 플래그 처리
+- [x] requestAiAnswer 서버 액션 추가
+- [x] QuestionForm에 isPreLecture prop 추가
+- [x] QuestionCard에 사전질문 뱃지 + AI 답변 요청 버튼
+- [x] KanbanBoard 4컬럼 확장 + 사전질문 컬럼 + 플로팅 버튼
+
+## Step 10: 좌석배치 + 수행관리
+- [x] seats, tasks, taskCompletions DB 테이블 추가
+- [x] Seat, Task, TaskCompletion 타입 추가
+- [x] seats.ts 서버 액션 (initializeSeating, claimSeat, toggleHandRaise 등)
+- [x] tasks.ts 서버 액션 (createTask, toggleTaskCompletion 등)
+- [x] /api/seating 폴링 엔드포인트
+- [x] useSeatingPolling 훅 (3초 간격)
+- [x] SeatCard, SeatingChart, SeatingSetupDialog 컴포넌트
+- [x] TaskItem, TaskPanel 컴포넌트 (수행 현황 매트릭스 포함)
+- [x] SeatingManager 오케스트레이터 컴포넌트
+- [x] BoardContainer (탭: Q&A 보드 | 좌석배치/수행관리)
+- [x] KanbanBoard 리팩터링 (인증 상태 BoardContainer에서 관리)
+- [x] page.tsx 통합 + 빌드 성공
 
 ## Review
 _(완료 후 작성)_

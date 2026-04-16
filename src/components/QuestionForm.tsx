@@ -23,6 +23,7 @@ interface QuestionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  isPreLecture?: boolean;
 }
 
 export function QuestionForm({
@@ -30,6 +31,7 @@ export function QuestionForm({
   open,
   onOpenChange,
   onSuccess,
+  isPreLecture = false,
 }: QuestionFormProps) {
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
@@ -68,6 +70,7 @@ export function QuestionForm({
       formData.set("content", content.trim());
       formData.set("password", password);
       formData.set("lecture_id", String(lectureId));
+      if (isPreLecture) formData.set("is_pre_lecture", "true");
 
       const result = await submitQuestion(formData);
       if (result.success) {
@@ -97,10 +100,11 @@ export function QuestionForm({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>질문하기</DialogTitle>
+          <DialogTitle>{isPreLecture ? "사전질문 등록" : "질문하기"}</DialogTitle>
           <DialogDescription>
-            궁금한 내용을 질문해 주세요. AI가 먼저 답변하고, 강사님이 직접
-            답변을 추가할 수 있습니다.
+            {isPreLecture
+              ? "수업 전 궁금한 내용을 미리 질문해 주세요. 강사님이 직접 답변합니다."
+              : "궁금한 내용을 질문해 주세요. AI가 먼저 답변하고, 강사님이 직접 답변을 추가할 수 있습니다."}
           </DialogDescription>
         </DialogHeader>
 
@@ -108,10 +112,12 @@ export function QuestionForm({
           <div className="flex flex-col items-center justify-center py-8 gap-3">
             <CheckCircle className="size-12 text-emerald-500" />
             <p className="text-sm font-medium text-emerald-700">
-              질문이 등록되었습니다!
+              {isPreLecture ? "사전질문이 등록되었습니다!" : "질문이 등록되었습니다!"}
             </p>
             <p className="text-xs text-muted-foreground">
-              AI가 답변을 생성 중입니다...
+              {isPreLecture
+                ? "강사님이 답변할 예정입니다."
+                : "AI가 답변을 생성 중입니다..."}
             </p>
           </div>
         ) : (
@@ -177,7 +183,7 @@ export function QuestionForm({
               </DialogClose>
               <Button type="submit" disabled={isSubmitting}>
                 <Send className="size-3.5" />
-                {isSubmitting ? "등록 중..." : "질문 등록"}
+                {isSubmitting ? "등록 중..." : isPreLecture ? "사전질문 등록" : "질문 등록"}
               </Button>
             </DialogFooter>
           </form>

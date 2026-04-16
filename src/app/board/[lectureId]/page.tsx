@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { questions, lectures, insights } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { questions, lectures, insights, seats, tasks, taskCompletions } from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { KanbanBoard } from "@/components/KanbanBoard";
+import { BoardContainer } from "@/components/BoardContainer";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -48,23 +48,49 @@ export default async function BoardPage({ params }: Props) {
     notFound();
   }
 
-  const initialQuestions = await db
-    .select()
-    .from(questions)
-    .where(eq(questions.lectureId, id));
+  // Fetch all data in parallel
+  const [initialQuestions, initialInsights, initialSeats, initialTasks] =
+    await Promise.all([
+      db.select().from(questions).where(eq(questions.lectureId, id)),
+      db
+        .select()
+        .from(insights)
+        .where(eq(insights.lectureId, id))
+        .orderBy(desc(insights.createdAt)),
+      db.select().from(seats).where(eq(seats.lectureId, id)),
+      db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.lectureId, id))
+        .orderBy(asc(tasks.sortOrder)),
+    ]);
 
-  const initialInsights = await db
-    .select()
-    .from(insights)
-    .where(eq(insights.lectureId, id))
-    .orderBy(desc(insights.createdAt));
+  // Fetch task completions for the seats in this lecture
+  const seatIds = initialSeats.map((s) => s.id);
+  let initialCompletions: {
+    id: number;
+    taskId: number;
+    seatId: number;
+    completedAt: Date | null;
+  }[] = [];
+  if (seatIds.length > 0) {
+    const allCompletions = await db.select().from(taskCompletions);
+    initialCompletions = allCompletions.filter((c) =>
+      seatIds.includes(c.seatId)
+    );
+  }
 
   return (
-    <KanbanBoard
+    <BoardContainer
       lectureId={id}
       lectureTitle={lecture.title}
       initialQuestions={initialQuestions}
       initialInsights={initialInsights}
+      initialSeatingData={{
+        seats: initialSeats,
+        tasks: initialTasks,
+        completions: initialCompletions,
+      }}
     />
   );
 }
