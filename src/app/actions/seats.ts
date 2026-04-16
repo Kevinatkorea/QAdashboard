@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { seats, taskCompletions } from "@/db/schema";
 import { verifyInstructorPassword } from "@/lib/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 type ActionResult = {
   success: boolean;
@@ -94,7 +94,7 @@ export async function claimSeat(
     const [updated] = await db
       .update(seats)
       .set({ studentName: studentName.trim(), updatedAt: new Date() })
-      .where(and(eq(seats.id, seatId), eq(seats.studentName, null!)))
+      .where(and(eq(seats.id, seatId), isNull(seats.studentName)))
       .returning();
 
     if (!updated) {

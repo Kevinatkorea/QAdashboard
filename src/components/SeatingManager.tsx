@@ -224,15 +224,27 @@ export function SeatingManager({
           </>
         )}
         {!isInstructorMode && mySeatId !== null && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleRelease(mySeatId)}
-            className="text-muted-foreground"
-          >
-            <LogOut className="size-3.5" />
-            자리 비우기
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+              {myStudentName}님 착석 중
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleRelease(mySeatId)}
+              className="text-muted-foreground"
+            >
+              <LogOut className="size-3.5" />
+              자리 비우기
+            </Button>
+          </div>
+        )}
+        {!isInstructorMode && mySeatId === null && seats.length > 0 && (
+          <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
+            <p className="text-xs text-blue-700">
+              빈 자리를 클릭하여 이름을 입력하면 착석할 수 있습니다. 착석 후 오른쪽 수행 목록을 체크하세요.
+            </p>
+          </div>
         )}
       </div>
 

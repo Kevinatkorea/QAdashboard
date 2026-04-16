@@ -41,6 +41,7 @@ export function SeatCard({
 }: SeatCardProps) {
   const [claimOpen, setClaimOpen] = useState(false);
   const [claimName, setClaimName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isEmpty = !seat.studentName;
   const completedCount = completedTaskIds.length;
@@ -48,11 +49,16 @@ export function SeatCard({
   const allDone = totalTasks > 0 && completedCount >= totalTasks;
   const handRaised = seat.handRaised;
 
-  function handleClaimSubmit() {
-    if (!claimName.trim()) return;
-    onClaim(seat.id, claimName.trim());
-    setClaimOpen(false);
-    setClaimName("");
+  async function handleClaimSubmit() {
+    if (!claimName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      onClaim(seat.id, claimName.trim());
+      setClaimOpen(false);
+      setClaimName("");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   // Determine background color
@@ -157,8 +163,8 @@ export function SeatCard({
               <DialogClose render={<Button variant="outline" />}>
                 취소
               </DialogClose>
-              <Button type="submit" disabled={!claimName.trim()}>
-                앉기
+              <Button type="submit" disabled={!claimName.trim() || isSubmitting}>
+                {isSubmitting ? "처리 중..." : "앉기"}
               </Button>
             </DialogFooter>
           </form>
