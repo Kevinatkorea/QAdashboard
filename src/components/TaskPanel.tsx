@@ -2,45 +2,47 @@
 
 import { useState } from "react";
 import type { Task, TaskCompletion, Seat } from "@/types";
-import { TaskItem } from "@/components/TaskItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, ClipboardList, Check } from "lucide-react";
+import {
+  Plus,
+  ClipboardList,
+  Check,
+  Pencil,
+  Trash2,
+  Eye,
+} from "lucide-react";
 
 interface TaskPanelProps {
   tasks: Task[];
   completions: TaskCompletion[];
   seats: Seat[];
-  mySeatId: number | null;
   isInstructorMode: boolean;
+  activeTaskId: number | null;
+  onSelectTask: (taskId: number | null) => void;
   onCreateTask: (title: string) => void;
   onUpdateTask: (taskId: number, title: string) => void;
   onDeleteTask: (taskId: number) => void;
-  onToggleCompletion: (taskId: number) => void;
 }
 
 export function TaskPanel({
   tasks,
   completions,
   seats,
-  mySeatId,
   isInstructorMode,
+  activeTaskId,
+  onSelectTask,
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
-  onToggleCompletion,
 }: TaskPanelProps) {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState("");
 
-  // My completed task IDs
-  const myCompletedTaskIds = new Set(
-    completions
-      .filter((c) => c.seatId === mySeatId)
-      .map((c) => c.taskId)
-  );
+  const occupiedSeats = seats.filter((s) => s.studentName);
 
   function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
@@ -50,19 +52,29 @@ export function TaskPanel({
     setShowAddForm(false);
   }
 
-  // Completion summary for instructor
-  const occupiedSeats = seats.filter((s) => s.studentName);
+  function handleSaveEdit(taskId: number) {
+    if (!editTitle.trim()) return;
+    onUpdateTask(taskId, editTitle.trim());
+    setEditingId(null);
+  }
 
   return (
-    <div className="flex flex-col h-full">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ClipboardList className="size-4 text-muted-foreground" />
           <span className="text-sm font-medium">수행 목록</span>
-          <Badge variant="secondary" className="text-[10px] h-4">
-            {tasks.length}개
-          </Badge>
+          {activeTaskId !== null && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="text-[10px] h-5 text-muted-foreground"
+              onClick={() => onSelectTask(null)}
+            >
+              전체 보기
+            </Button>
+          )}
         </div>
         {isInstructorMode && (
           <Button
@@ -76,9 +88,9 @@ export function TaskPanel({
         )}
       </div>
 
-      {/* Add task form (instructor) */}
+      {/* Add task form */}
       {isInstructorMode && showAddForm && (
-        <form onSubmit={handleAddTask} className="flex items-center gap-2 mb-2">
+        <form onSubmit={handleAddTask} className="flex items-center gap-2 mb-3">
           <Input
             placeholder="과제 제목"
             value={newTaskTitle}
@@ -92,97 +104,105 @@ export function TaskPanel({
         </form>
       )}
 
-      {/* Task list */}
+      {/* Task cards as selectable pills */}
       {tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+        <div className="text-center py-4 text-muted-foreground">
           <p className="text-xs">수행 목록이 없습니다.</p>
           {isInstructorMode && (
             <p className="text-[10px] mt-1">과제를 추가해 주세요.</p>
           )}
         </div>
       ) : (
-        <div className="space-y-0.5">
-          {tasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              isCompleted={myCompletedTaskIds.has(task.id)}
-              isInstructorMode={isInstructorMode}
-              canToggle={mySeatId !== null && !isInstructorMode}
-              onToggle={onToggleCompletion}
-              onUpdate={onUpdateTask}
-              onDelete={onDeleteTask}
-            />
-          ))}
+        <div className="flex flex-wrap gap-2">
+          {tasks.map((task) => {
+            const isActive = activeTaskId === task.id;
+            // Count completions for this task
+            const doneCount = occupiedSeats.filter((s) =>
+              completions.some(
+                (c) => c.taskId === task.id && c.seatId === s.id
+              )
+            ).length;
+            const total = occupiedSeats.length;
+
+            if (editingId === task.id) {
+              return (
+                <form
+                  key={task.id}
+                  className="flex items-center gap-1"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveEdit(task.id);
+                  }}
+                >
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="h-7 text-xs w-32"
+                    autoFocus
+                  />
+                  <Button size="xs" type="submit" variant="ghost">
+                    <Check className="size-3" />
+                  </Button>
+                </form>
+              );
+            }
+
+            return (
+              <div key={task.id} className="flex items-center gap-0.5 group">
+                <button
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-muted/50 text-foreground border-muted-foreground/20 hover:bg-muted hover:border-muted-foreground/40"
+                  }`}
+                  onClick={() =>
+                    onSelectTask(isActive ? null : task.id)
+                  }
+                >
+                  {isActive && <Eye className="size-3" />}
+                  {task.title}
+                  {total > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className={`text-[9px] h-4 ml-0.5 ${
+                        isActive
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : doneCount === total
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {doneCount}/{total}
+                    </Badge>
+                  )}
+                </button>
+                {isInstructorMode && (
+                  <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-5 w-5 p-0"
+                      onClick={() => {
+                        setEditingId(task.id);
+                        setEditTitle(task.title);
+                      }}
+                    >
+                      <Pencil className="size-2.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-5 w-5 p-0 hover:text-destructive"
+                      onClick={() => onDeleteTask(task.id)}
+                    >
+                      <Trash2 className="size-2.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      {/* Student notice */}
-      {!isInstructorMode && mySeatId === null && tasks.length > 0 && (
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          과제를 수행하려면 먼저 좌석을 선택해 주세요.
-        </p>
-      )}
-
-      {/* Instructor: completion summary matrix */}
-      {isInstructorMode && tasks.length > 0 && occupiedSeats.length > 0 && (
-        <>
-          <Separator className="my-3" />
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-muted-foreground">
-              수행 현황
-            </span>
-            <div className="overflow-x-auto">
-              <table className="text-[10px] w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left py-1 pr-2 font-medium text-muted-foreground">
-                      학생
-                    </th>
-                    {tasks.map((t) => (
-                      <th
-                        key={t.id}
-                        className="px-1 py-1 font-medium text-muted-foreground text-center"
-                        title={t.title}
-                      >
-                        <span className="truncate block max-w-[40px]">
-                          {t.title}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {occupiedSeats.map((seat) => {
-                    const seatCompletions = new Set(
-                      completions
-                        .filter((c) => c.seatId === seat.id)
-                        .map((c) => c.taskId)
-                    );
-                    return (
-                      <tr key={seat.id} className="border-t border-muted/30">
-                        <td className="py-1 pr-2 font-medium truncate max-w-[60px]">
-                          {seat.studentName}
-                        </td>
-                        {tasks.map((t) => (
-                          <td key={t.id} className="text-center px-1 py-1">
-                            {seatCompletions.has(t.id) ? (
-                              <Check className="size-3 text-emerald-600 mx-auto" />
-                            ) : (
-                              <span className="text-muted-foreground/40">
-                                -
-                              </span>
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
       )}
     </div>
   );

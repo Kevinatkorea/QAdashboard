@@ -51,6 +51,7 @@ export function SeatingManager({
   );
 
   const [setupOpen, setSetupOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
   // Student identity from localStorage
   const [mySeatId, setMySeatId] = useState<number | null>(null);
@@ -64,13 +65,11 @@ export function SeatingManager({
       );
       if (stored) {
         const { seatId, studentName } = JSON.parse(stored);
-        // Verify seat still belongs to this student
         const seat = seats.find((s) => s.id === seatId);
         if (seat && seat.studentName === studentName) {
           setMySeatId(seatId);
           setMyStudentName(studentName);
         } else {
-          // Stale data — clear
           localStorage.removeItem(`${STORAGE_KEY_PREFIX}${lectureId}`);
           setMySeatId(null);
           setMyStudentName(null);
@@ -142,7 +141,6 @@ export function SeatingManager({
       );
       if (result.success) {
         setSetupOpen(false);
-        // Clear any local student identity since seats were reset
         localStorage.removeItem(`${STORAGE_KEY_PREFIX}${lectureId}`);
         setMySeatId(null);
         setMyStudentName(null);
@@ -170,10 +168,11 @@ export function SeatingManager({
 
   const handleDeleteTask = useCallback(
     async (taskId: number) => {
+      if (activeTaskId === taskId) setActiveTaskId(null);
       await deleteTask(taskId, instructorPassword);
       refetch();
     },
-    [instructorPassword, refetch]
+    [activeTaskId, instructorPassword, refetch]
   );
 
   const handleToggleCompletion = useCallback(
@@ -186,8 +185,6 @@ export function SeatingManager({
   );
 
   const handRaisedCount = seats.filter((s) => s.handRaised).length;
-
-  // Unique row count for setup dialog
   const rowSet = new Set(seats.map((s) => s.row));
 
   return (
@@ -242,48 +239,43 @@ export function SeatingManager({
         {!isInstructorMode && mySeatId === null && seats.length > 0 && (
           <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2">
             <p className="text-xs text-blue-700">
-              빈 자리를 클릭하여 이름을 입력하면 착석할 수 있습니다. 착석 후 오른쪽 수행 목록을 체크하세요.
+              빈 자리를 클릭하여 이름을 입력하세요. 착석 후 자기 자리를 클릭하면 수행 체크 및 손흔들기를 할 수 있습니다.
             </p>
           </div>
         )}
       </div>
 
-      {/* Main content: seating chart + task panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Seating chart — takes 3/5 */}
-        <div className="lg:col-span-3">
-          <div className="rounded-lg border bg-card p-3 sm:p-4">
-            <SeatingChart
-              seats={seats}
-              tasks={tasks}
-              completions={completions}
-              mySeatId={mySeatId}
-              myStudentName={myStudentName}
-              isInstructorMode={isInstructorMode}
-              onClaim={handleClaim}
-              onRelease={handleRelease}
-              onToggleHand={handleToggleHand}
-              onClearHand={handleClearHand}
-            />
-          </div>
-        </div>
+      {/* Seating chart */}
+      <div className="rounded-lg border bg-card p-3 sm:p-4">
+        <SeatingChart
+          seats={seats}
+          tasks={tasks}
+          completions={completions}
+          mySeatId={mySeatId}
+          myStudentName={myStudentName}
+          isInstructorMode={isInstructorMode}
+          activeTaskId={activeTaskId}
+          onClaim={handleClaim}
+          onRelease={handleRelease}
+          onToggleHand={handleToggleHand}
+          onClearHand={handleClearHand}
+          onToggleCompletion={handleToggleCompletion}
+        />
+      </div>
 
-        {/* Task panel — takes 2/5 */}
-        <div className="lg:col-span-2">
-          <div className="rounded-lg border bg-card p-3 sm:p-4">
-            <TaskPanel
-              tasks={tasks}
-              completions={completions}
-              seats={seats}
-              mySeatId={mySeatId}
-              isInstructorMode={isInstructorMode}
-              onCreateTask={handleCreateTask}
-              onUpdateTask={handleUpdateTask}
-              onDeleteTask={handleDeleteTask}
-              onToggleCompletion={handleToggleCompletion}
-            />
-          </div>
-        </div>
+      {/* Task panel — below the chart */}
+      <div className="rounded-lg border bg-card p-3 sm:p-4">
+        <TaskPanel
+          tasks={tasks}
+          completions={completions}
+          seats={seats}
+          isInstructorMode={isInstructorMode}
+          activeTaskId={activeTaskId}
+          onSelectTask={setActiveTaskId}
+          onCreateTask={handleCreateTask}
+          onUpdateTask={handleUpdateTask}
+          onDeleteTask={handleDeleteTask}
+        />
       </div>
 
       {/* Setup dialog */}
