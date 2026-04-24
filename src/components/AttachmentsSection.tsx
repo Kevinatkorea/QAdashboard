@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import type { LectureAttachment } from "@/types";
 import {
-  uploadAttachment,
   deleteAttachment,
   listAttachments,
 } from "@/app/actions/attachments";
+import { upload } from "@vercel/blob/client";
 import {
   Paperclip,
   Download,
@@ -70,14 +70,25 @@ export function AttachmentsSection({
           );
           continue;
         }
-        const formData = new FormData();
-        formData.append("lectureId", String(lectureId));
-        formData.append("instructorPassword", instructorPassword);
-        formData.append("file", file);
+        const safeName = file.name.replace(/[^\w.\-가-힣 ()]/g, "_");
+        const pathname = `lectures/${lectureId}/${Date.now()}-${safeName}`;
 
-        const result = await uploadAttachment(formData);
-        if (!result.success) {
-          setError(result.error || `"${file.name}" 업로드 실패`);
+        try {
+          await upload(pathname, file, {
+            access: "public",
+            handleUploadUrl: "/api/attachments/upload",
+            clientPayload: JSON.stringify({
+              lectureId,
+              instructorPassword,
+              fileName: file.name,
+              fileSize: file.size,
+              mimeType: file.type || "",
+            }),
+          });
+        } catch (err) {
+          const msg =
+            err instanceof Error ? err.message : "업로드 실패";
+          setError(`"${file.name}" 업로드 실패: ${msg}`);
           break;
         }
       }
