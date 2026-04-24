@@ -1,5 +1,13 @@
 import { db } from "@/db";
-import { questions, lectures, insights, seats, tasks, taskCompletions } from "@/db/schema";
+import {
+  questions,
+  lectures,
+  insights,
+  seats,
+  tasks,
+  taskCompletions,
+  lectureAttachments,
+} from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { BoardContainer } from "@/components/BoardContainer";
@@ -49,21 +57,31 @@ export default async function BoardPage({ params }: Props) {
   }
 
   // Fetch all data in parallel
-  const [initialQuestions, initialInsights, initialSeats, initialTasks] =
-    await Promise.all([
-      db.select().from(questions).where(eq(questions.lectureId, id)),
-      db
-        .select()
-        .from(insights)
-        .where(eq(insights.lectureId, id))
-        .orderBy(desc(insights.createdAt)),
-      db.select().from(seats).where(eq(seats.lectureId, id)),
-      db
-        .select()
-        .from(tasks)
-        .where(eq(tasks.lectureId, id))
-        .orderBy(asc(tasks.sortOrder)),
-    ]);
+  const [
+    initialQuestions,
+    initialInsights,
+    initialSeats,
+    initialTasks,
+    initialAttachments,
+  ] = await Promise.all([
+    db.select().from(questions).where(eq(questions.lectureId, id)),
+    db
+      .select()
+      .from(insights)
+      .where(eq(insights.lectureId, id))
+      .orderBy(desc(insights.createdAt)),
+    db.select().from(seats).where(eq(seats.lectureId, id)),
+    db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.lectureId, id))
+      .orderBy(asc(tasks.sortOrder)),
+    db
+      .select()
+      .from(lectureAttachments)
+      .where(eq(lectureAttachments.lectureId, id))
+      .orderBy(asc(lectureAttachments.createdAt)),
+  ]);
 
   // Fetch task completions for the seats in this lecture
   const seatIds = initialSeats.map((s) => s.id);
@@ -91,6 +109,7 @@ export default async function BoardPage({ params }: Props) {
         tasks: initialTasks,
         completions: initialCompletions,
       }}
+      initialAttachments={initialAttachments}
     />
   );
 }

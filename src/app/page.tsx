@@ -1,5 +1,8 @@
 import { getLectures } from "@/app/actions/lectures";
 import { LectureList } from "@/components/LectureList";
+import { db } from "@/db";
+import { lectureAttachments } from "@/db/schema";
+import { sql } from "drizzle-orm";
 import type { Lecture } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +10,18 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const result = await getLectures();
   const lectures = (result.success ? (result.data as Lecture[]) : []) ?? [];
+
+  const attachmentCountsRaw = await db
+    .select({
+      lectureId: lectureAttachments.lectureId,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(lectureAttachments)
+    .groupBy(lectureAttachments.lectureId);
+  const attachmentCounts: Record<number, number> = {};
+  for (const row of attachmentCountsRaw) {
+    attachmentCounts[row.lectureId] = row.count;
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -23,7 +38,10 @@ export default async function HomePage() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <section aria-label="강의 목록">
-          <LectureList initialLectures={lectures} />
+          <LectureList
+            initialLectures={lectures}
+            attachmentCounts={attachmentCounts}
+          />
         </section>
       </main>
     </div>

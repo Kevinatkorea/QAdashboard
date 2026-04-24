@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Question, Insight } from "@/types";
+import type { Question, Insight, LectureAttachment } from "@/types";
 import type { SeatingData } from "@/hooks/useSeatingPolling";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { SeatingManager } from "@/components/SeatingManager";
 import { InstructorToolbar } from "@/components/InstructorToolbar";
+import { AttachmentsSection } from "@/components/AttachmentsSection";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface BoardContainerProps {
@@ -14,6 +15,7 @@ interface BoardContainerProps {
   initialQuestions: Question[];
   initialInsights: Insight[];
   initialSeatingData: SeatingData;
+  initialAttachments: LectureAttachment[];
 }
 
 export function BoardContainer({
@@ -22,6 +24,7 @@ export function BoardContainer({
   initialQuestions,
   initialInsights,
   initialSeatingData,
+  initialAttachments,
 }: BoardContainerProps) {
   const [isInstructorMode, setIsInstructorMode] = useState(false);
   const [instructorPassword, setInstructorPassword] = useState("");
@@ -65,6 +68,15 @@ export function BoardContainer({
             onLogout={handleLogout}
             onRefetch={() => {}}
           />
+
+          <div className="mt-2">
+            <AttachmentsSection
+              lectureId={lectureId}
+              initialAttachments={initialAttachments}
+              isInstructorMode={isInstructorMode}
+              instructorPassword={instructorPassword}
+            />
+          </div>
         </div>
       </header>
 

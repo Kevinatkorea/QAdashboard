@@ -22,6 +22,7 @@ import {
   BookOpen,
   Calendar,
   ArrowRight,
+  Paperclip,
 } from "lucide-react";
 
 function formatDate(date: Date | string | null): string {
@@ -36,9 +37,13 @@ function formatDate(date: Date | string | null): string {
 
 interface LectureListProps {
   initialLectures: Lecture[];
+  attachmentCounts?: Record<number, number>;
 }
 
-export function LectureList({ initialLectures }: LectureListProps) {
+export function LectureList({
+  initialLectures,
+  attachmentCounts = {},
+}: LectureListProps) {
   const [lectures, setLectures] = useState<Lecture[]>(initialLectures);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -166,11 +171,21 @@ export function LectureList({ initialLectures }: LectureListProps) {
                         <h3 className="font-medium text-sm sm:text-base truncate group-hover:text-primary transition-colors">
                           {lecture.title}
                         </h3>
-                        <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
-                          <Calendar className="size-3" />
-                          <time className="text-xs" dateTime={lecture.createdAt ? new Date(lecture.createdAt).toISOString() : undefined}>
-                            {formatDate(lecture.createdAt)}
-                          </time>
+                        <div className="flex items-center gap-3 mt-1 text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="size-3" />
+                            <time className="text-xs" dateTime={lecture.createdAt ? new Date(lecture.createdAt).toISOString() : undefined}>
+                              {formatDate(lecture.createdAt)}
+                            </time>
+                          </div>
+                          {(attachmentCounts[lecture.id] ?? 0) > 0 && (
+                            <div className="flex items-center gap-1" title="첨부파일">
+                              <Paperclip className="size-3" />
+                              <span className="text-xs">
+                                {attachmentCounts[lecture.id]}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />

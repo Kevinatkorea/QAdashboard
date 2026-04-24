@@ -22,7 +22,32 @@ export const lecturesRelations = relations(lectures, ({ many }) => ({
   insights: many(insights),
   seats: many(seats),
   tasks: many(tasks),
+  attachments: many(lectureAttachments),
 }));
+
+// ── Lecture Attachments ─────────────────────────────────────────────────────
+export const lectureAttachments = pgTable("lecture_attachments", {
+  id: serial("id").primaryKey(),
+  lectureId: integer("lecture_id")
+    .notNull()
+    .references(() => lectures.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  blobPathname: text("blob_pathname").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const lectureAttachmentsRelations = relations(
+  lectureAttachments,
+  ({ one }) => ({
+    lecture: one(lectures, {
+      fields: [lectureAttachments.lectureId],
+      references: [lectures.id],
+    }),
+  })
+);
 
 // ── Questions ───────────────────────────────────────────────────────────────
 export const questions = pgTable("questions", {

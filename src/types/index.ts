@@ -19,6 +19,17 @@ export interface Lecture {
   createdAt: Date | string | null;
 }
 
+export interface LectureAttachment {
+  id: number;
+  lectureId: number;
+  fileName: string;
+  fileUrl: string;
+  blobPathname: string;
+  fileSize: number;
+  mimeType: string | null;
+  createdAt: Date | string | null;
+}
+
 export interface Insight {
   id: number;
   lectureId: number;
