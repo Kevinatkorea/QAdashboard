@@ -17,6 +17,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { createLecture } from "@/app/actions/lectures";
+import { LocalDate } from "@/components/LocalDate";
 import {
   Plus,
   BookOpen,
@@ -24,16 +25,6 @@ import {
   ArrowRight,
   Paperclip,
 } from "lucide-react";
-
-function formatDate(date: Date | string | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  return d.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 interface LectureListProps {
   initialLectures: Lecture[];
@@ -174,9 +165,11 @@ export function LectureList({
                         <div className="flex items-center gap-3 mt-1 text-muted-foreground">
                           <div className="flex items-center gap-1.5">
                             <Calendar className="size-3" />
-                            <time className="text-xs" dateTime={lecture.createdAt ? new Date(lecture.createdAt).toISOString() : undefined}>
-                              {formatDate(lecture.createdAt)}
-                            </time>
+                            <LocalDate
+                              date={lecture.createdAt}
+                              as="time"
+                              className="text-xs"
+                            />
                           </div>
                           {(attachmentCounts[lecture.id] ?? 0) > 0 && (
                             <div className="flex items-center gap-1" title="첨부파일">

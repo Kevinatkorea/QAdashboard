@@ -3,23 +3,20 @@
 import type { Insight } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { LocalDate } from "@/components/LocalDate";
 import { Sparkles } from "lucide-react";
 
 interface InsightsPanelProps {
   insights: Insight[];
 }
 
-function formatDate(date: Date | string | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  return d.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+const INSIGHT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+};
 
 export function InsightsPanel({ insights }: InsightsPanelProps) {
   if (insights.length === 0) {
@@ -39,9 +36,11 @@ export function InsightsPanel({ insights }: InsightsPanelProps) {
           <CardContent>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="size-4 text-amber-500" />
-              <span className="text-xs text-muted-foreground">
-                {formatDate(insight.createdAt)}
-              </span>
+              <LocalDate
+                date={insight.createdAt}
+                options={INSIGHT_DATE_OPTIONS}
+                className="text-xs text-muted-foreground"
+              />
             </div>
             <Separator className="mb-3" />
             <div className="text-sm leading-relaxed whitespace-pre-wrap">
