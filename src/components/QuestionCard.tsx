@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Question } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,14 @@ export function QuestionCard({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [relativeTime, setRelativeTime] = useState("");
+
+  useEffect(() => {
+    const update = () => setRelativeTime(formatRelativeTime(question.createdAt));
+    update();
+    const interval = setInterval(update, 60_000);
+    return () => clearInterval(interval);
+  }, [question.createdAt]);
 
   const hasAiAnswer = !!question.aiAnswer;
   const hasInstructorAnswer = !!question.instructorAnswer;
@@ -168,8 +176,8 @@ export function QuestionCard({
               </span>
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="size-2.5" />
-                <span className="text-[10px]">
-                  {formatRelativeTime(question.createdAt)}
+                <span className="text-[10px]" suppressHydrationWarning>
+                  {relativeTime}
                 </span>
               </div>
             </div>
