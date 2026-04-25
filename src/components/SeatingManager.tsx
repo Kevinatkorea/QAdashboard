@@ -57,7 +57,10 @@ export function SeatingManager({
   const [mySeatId, setMySeatId] = useState<number | null>(null);
   const [myStudentName, setMyStudentName] = useState<string | null>(null);
 
-  // Load student identity from localStorage
+  // Restore identity from localStorage on mount.
+  // Don't reconcile against `seats` here — initialData may be stale on remount
+  // (e.g. after switching tabs), and clearing based on stale seats would wipe
+  // out the user's valid claim before polling refreshes.
   useEffect(() => {
     try {
       const stored = localStorage.getItem(
@@ -65,20 +68,30 @@ export function SeatingManager({
       );
       if (stored) {
         const { seatId, studentName } = JSON.parse(stored);
-        const seat = seats.find((s) => s.id === seatId);
-        if (seat && seat.studentName === studentName) {
-          setMySeatId(seatId);
-          setMyStudentName(studentName);
-        } else {
-          localStorage.removeItem(`${STORAGE_KEY_PREFIX}${lectureId}`);
-          setMySeatId(null);
-          setMyStudentName(null);
-        }
+        setMySeatId(seatId);
+        setMyStudentName(studentName);
       }
     } catch {
       // ignore
     }
-  }, [lectureId, seats]);
+  }, [lectureId]);
+
+  // Once seats data is fresh, clear identity only if someone else holds the
+  // seat (different non-null name). Missing/null name is treated as "not yet
+  // synced" rather than "evicted" to avoid flapping during polling gaps.
+  useEffect(() => {
+    if (mySeatId === null || myStudentName === null) return;
+    const seat = seats.find((s) => s.id === mySeatId);
+    if (
+      seat &&
+      seat.studentName !== null &&
+      seat.studentName !== myStudentName
+    ) {
+      localStorage.removeItem(`${STORAGE_KEY_PREFIX}${lectureId}`);
+      setMySeatId(null);
+      setMyStudentName(null);
+    }
+  }, [seats, mySeatId, myStudentName, lectureId]);
 
   const handleClaim = useCallback(
     async (seatId: number, name: string) => {
